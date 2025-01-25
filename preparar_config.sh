@@ -1,4 +1,5 @@
 marker=$1
+marker=$(basename "$1") #sanitizar el marker
 
 git clone https://github.com/JoaquinMe/barque "$marker"/barque
 
