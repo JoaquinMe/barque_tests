@@ -5,6 +5,7 @@ import subprocess
 import pandas as pd
 
 index = pd.read_csv("info.csv")
+basedir = os.getcwd()
 
 for i, row in index.iterrows():
     bicho = row["bicho"]
@@ -14,32 +15,40 @@ for i, row in index.iterrows():
     result_preparar_config = subprocess.run(
         ["sh", "preparar_config.sh", str(marker)], env=os.environ
     )
-
+    nuevodir = f"./{marker}/barque"
+    os.chdir(nuevodir)
     # descargar todos los accessions
     result_descarga = subprocess.run(
         [
             "sh",
-            f"{marker}/barque/descargar_multiple.sh",
-            f"{marker}/14_tests/{marker}/{marker}_accessions.txt",
-            f"{marker}/barque/04_data",
+            f"descargar_multiple.sh",
+            f"14_tests/{marker}/{marker}_accessions.txt",
+            f"04_data",
         ],
         env=os.environ,
     )
+    print(result_descarga)
     # rename
     result_rename = subprocess.run(
         [
             "python",
-            f"{marker}/barque/rename_script.py",
-            f"{marker}/barque/04_data",
+            f"rename_script.py",
+            f"04_data",
             str(bicho),
         ],
         env=os.environ,
     )
     # arrancar barque
     result_barque = subprocess.run(
-        ["sh", f"{marker}/barque/barque", f"{marker}/barque/02_info/barque_config.sh"],
+        [
+            "bash",
+            f"barque",
+            f"02_info/barque_config.sh",
+        ],
         env=os.environ,
     )
+
+    os.chdir(basedir)
 
     # zipear 12_results y 99_logs
     result_cleanup = subprocess.run(
@@ -55,5 +64,5 @@ for i, row in index.iterrows():
 
     index.loc[i, "results_checksum"] = results_checksum
     index.loc[i, "logfiles_checksum"] = logfiles_checksum
-print(index)
+print(index)  # printear tabla
 index.to_csv("output.csv", index=False, header=True)
